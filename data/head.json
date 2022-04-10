@@ -1,0 +1,58 @@
+{
+    "TIMEBASE": {
+        "SCALE": "20us",
+        "HOFFSET": 0
+    },
+    "SAMPLE": {
+        "FULLSCREEN": 1520,
+        "SLOWMOVE": -1,
+        "DATALEN": 1520,
+        "SAMPLERATE": "(25MS/s)",
+        "TYPE": "SAMPle",
+        "DEPMEM": "10K"
+    },
+    "CHANNEL": [
+        {
+            "NAME": "CH1",
+            "DISPLAY": "ON",
+            "Current_Rate": 10000.000000,
+            "Current_Ratio": 2.500000,
+            "Measure_Current_Switch": "OFF",
+            "COUPLING": "DC",
+            "PROBE": "1X",
+            "SCALE": "100mV",
+            "OFFSET": 101,
+            "FREQUENCE": 33003.30078,
+            "INVERSE": "OFF"
+        },
+        {
+            "NAME": "CH2",
+            "DISPLAY": "ON",
+            "Current_Rate": 10000.000000,
+            "Current_Ratio": 5.000000,
+            "Measure_Current_Switch": "OFF",
+            "COUPLING": "AC",
+            "PROBE": "1X",
+            "SCALE": "200mV",
+            "OFFSET": -100,
+            "FREQUENCE": 14771.04980,
+            "INVERSE": "OFF"
+        }
+    ],
+    "DATATYPE": "SCREEN",
+    "RUNSTATUS": "TRIG",
+    "IDN": "OWON,NDS102U,1626094,V4.0.2.0",
+    "MODEL": "310201104",
+    "Trig": {
+        "Mode": "SINGle",
+        "Type": "EDGE",
+        "Items": {
+            "Channel": "CH2",
+            "Level": "-180mV",
+            "Edge": "RISE",
+            "Coupling": "DC",
+            "HoldOff": "100ns"
+        },
+        "Sweep": "AUTO"
+    }
+}

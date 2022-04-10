@@ -1,0 +1,33 @@
+{
+    "MODEL": "310201104",
+    "IDN": "OWON,NDS102U,1626094,V4.0.2.0",
+    "channel": [
+        {
+            "Index": "CH1",
+            "Availability_Flag": "TRUE",
+            "Display_Switch": "OFF",
+            "Wave_Character": "CH1",
+            "Sample_Rate": "(2.5MS/s)",
+            "Acqu_Mode": "SAMPle",
+            "Storage_Depth": "10K",
+            "Display_Mode": "Normal",
+            "Hscale": "200us",
+            "Vscale": "200mV",
+            "Reference_Zero": "0",
+            "Scroll_Pos_Time": "0.000000us",
+            "Trig_After_Time": "0.000000us",
+            "Trig_Tops_Tme": "0.000000us",
+            "Adc_Data_Time": "0.400000us", //
+            "Adc_Data0_Time": "0.000000us",
+            "Voltage_Rate": "0.500000mv", //
+            "Data_Length": "10000",
+            "Probe_Magnification": "1X",
+            "Current_Rate": 10000.000000,
+            "Current_Ratio": 5.000000,
+            "Measure_Current_Switch": "OFF",
+            "Cyc": "714.000000us",
+            "Freq": "1400.560181Hz",
+            "PRECISION": 0
+        },
+    ]
+}
