@@ -2,11 +2,18 @@ import math
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
+import pandas as pd
+from datetime import datetime, timezone, timedelta
 from param import *
 from spad import SPAD
+import logging
+
+logging.basicConfig(level = logging.INFO)
+logger = logging.getLogger(__name__)
 
 class App:
 
@@ -18,6 +25,7 @@ class App:
         self.displayParam()
         self.displaySPAD()
         self.displaySample()
+        self.displayElse()
         self.displayCurve()
 
         self.root.mainloop()
@@ -57,6 +65,8 @@ class App:
         ttk.Button(gridT, text='Reset Param', command=self.resetParam).grid(row=1, column=4, padx=10, pady=2)
         ttk.Button(gridT, text='Simulate', command=self.simulate).grid(row=2, column=4, padx=10, pady=2)
         ttk.Button(gridT, text='Clear Plot', command=self.clearPlot).grid(row=3, column=4, padx=10, pady=2)
+        self.status = ttk.Label(gridT, text='StandBy', anchor='center', background='#06B025')
+        self.status.grid(row=4, column=4, padx=10, pady=2, sticky='ew')
 
     def displaySPAD(self):
         gridM = ttk.Labelframe(self.root, text='SPAD Params')
@@ -102,7 +112,10 @@ class App:
         }
         self.simRB = tk.StringVar(value='Q')
         self.stepRB = tk.BooleanVar(value=True)
-        self.saveRB = tk.BooleanVar(value=False)
+        self.saveCB = {
+            'Raw': tk.BooleanVar(value=False),
+            'Summary': tk.BooleanVar(value=False)
+        }
 
         ttk.Label(gridB, text='Duration (s)').grid(row=0, column=0, padx=2, pady=2, sticky='w')
         ttk.Entry(gridB, textvariable=self.dur).grid(row=1, column=0, padx=2, pady=2)
@@ -120,8 +133,24 @@ class App:
         ttk.Radiobutton(gridB, text='Default Step', value=False, variable=self.stepRB).grid(row=0, column=3, padx=2, pady=2, sticky='w')
         ttk.Radiobutton(gridB, text='Custom Step', value=True, variable=self.stepRB).grid(row=1, column=3, padx=2, pady=2, sticky='w')
 
-        ttk.Radiobutton(gridB, text='Not Save', value=False, variable=self.saveRB).grid(row=0, column=4, padx=2, pady=2, sticky='w')
-        ttk.Radiobutton(gridB, text='Save', value=True, variable=self.saveRB).grid(row=1, column=4, padx=2, pady=2, sticky='w')
+        ttk.Checkbutton(gridB, text='Save Raw Data', variable=self.saveCB['Raw']).grid(row=0, column=4, padx=2, pady=2, sticky='w')
+        ttk.Checkbutton(gridB, text='Save Summary', variable=self.saveCB['Summary']).grid(row=1, column=4, padx=2, pady=2, sticky='w')
+
+    def displayElse(self):
+        self.summaryPK = tk.IntVar(value=0)
+        self.summaryET = tk.IntVar(value=0)
+
+        grid4 = ttk.Labelframe(self.root, text='Else')
+        grid4.grid(row=3, column=0, padx=5, pady=(0, 5), ipadx=2, ipady=2, sticky='ew')
+        ttk.Button(grid4, text='Import Data', command=self.read).grid(row=0, column=0, padx=10, pady=2, sticky='ew')
+        ttk.Button(grid4, text='Export Data', command=self.save).grid(row=1, column=0, padx=10, pady=2, sticky='ew')
+        ttk.Button(grid4, text='Plot From Memory', command=self.plotFromMemory).grid(row=2, column=0, padx=10, pady=2, sticky='ew')
+
+        ttk.Label(grid4, text='Peak Count').grid(row=0, column=1, padx=2, pady=2, sticky='e')
+        ttk.Label(grid4, text='Event Count').grid(row=1, column=1, padx=2, pady=2, sticky='e')
+        ttk.Entry(grid4, textvariable=self.summaryPK, state='readonly').grid(row=0, column=2, padx=2, pady=2)
+        ttk.Entry(grid4, textvariable=self.summaryET, state='readonly').grid(row=1, column=2, padx=2, pady=2)
+        ttk.Button(grid4, text='Update', width=10, command=self.updateSummary).grid(row=2, column=1, columnspan=2, padx=2, pady=2, sticky='e')
 
     def displayCurve(self):
         gridR = ttk.Frame(self.root)
@@ -156,17 +185,19 @@ class App:
         ttk.Button(gridRB, text='Set', width=8, command=self.setPlot).grid(row=1, column=5, padx=2, pady=2, sticky='w')
 
     def simulate(self):
+        self.status.config(text='Processing...', background='yellow')
+        self.status.update()
         self.setParam(silence=True)
         if not hasattr(self, 'SPAD'):
             self.SPAD = SPAD(parent=self)
         self.SPAD.config(hd=self.stepRB.get(), 
-                         save=self.saveRB.get(), 
-                         plotcount=self.plotCount,
+                         savemode=self.saveMode,
                          plotmode=self.plotMode,
                          color=self.color.get())
         self.SPAD.start(duration=self.dur.get(), simumode=self.simRB.get())
         if self.colorRollCB.get():
             self.rollColor()
+        self.status.config(text='StandBy', background='#06B025')
 
     def setParam(self, silence=False):
         P.Va = self.va.get()
@@ -219,7 +250,7 @@ class App:
             delattr(self, 'SPAD')
 
     def setPlot(self):
-        if hasattr(self, 'SPAD') and hasattr(self.SPAD, 'axes'):
+        if hasattr(self, 'SPAD') and len(self.SPAD.axes):
             if self.legendCB.get():
                 linecolors, linelegends = eval(self.legend.get())
             for i, ax in enumerate(self.SPAD.axes):
@@ -256,6 +287,71 @@ class App:
                 mode.append(k)
         return mode
 
+    @property
+    def saveMode(self):
+        mode = []
+        for k, v in self.saveCB.items():
+            if v.get():
+                mode.append(k)
+        return mode
+
+    def plotFromMemory(self):
+        if hasattr(self, 'SPAD') and self.SPAD.data._data:
+            plt.clf()
+            self.SPAD.config(plotmode=['RSIt'], updatedata=False)
+            for ax in self.SPAD.axes:
+                ax.plot(self.SPAD.data.time, self.SPAD.data.data, marker='', color=self.color.get())
+            self.curve.canvas.draw()
+            if self.colorRollCB.get():
+                self.rollColor()
+        else:
+            logger.warning('[PlotFromMemory Error] has no data')
+
+    def updateSummary(self):
+        if hasattr(self, 'SPAD') and self.SPAD.data.on:
+            self.summaryPK.set(self.SPAD.data.peakCount)
+            self.summaryET.set(self.SPAD.data.eventCount)
+
+    def read(self):
+        '''Import data from OSC from comparsion use'''
+        fp = filedialog.askopenfilename(title='Import Plot', filetypes=[('Data File', ['*.csv', '*.xlsx'])])
+        if fp:
+            if fp.endswith('.csv'):
+                df = pd.read_csv(fp)
+            elif fp.endswith('.xlsx'):
+                df = pd.read_excel(fp)
+            data = df.to_numpy().T
+            if not hasattr(self, 'SPAD'):
+                self.SPAD = SPAD(parent=self)
+            self.SPAD.config(plotmode=['External'])
+            for ax in self.SPAD.axes:
+                ax.plot(data[0], data[1], marker='', color=self.color.get())
+            self.curve.canvas.draw()
+            if self.colorRollCB.get():
+                self.rollColor()
+
+    def save(self):
+        if hasattr(self, 'SPAD') and self.SPAD.data.on:
+            # Raw
+            if self.SPAD.data._data:
+                data = np.array([self.SPAD.data.time, self.SPAD.data.data]).T
+                columns = ['Time', 'I_s']
+                zonedTime = datetime.now(timezone(timedelta(hours=+8)))
+                df = pd.DataFrame(data, columns=columns)
+                df.to_csv('data\\Raw' + zonedTime.strftime('%Y.%m.%d.%H.%M.%S') + '.csv', index=False)
+            # Summary
+            data = []
+            if self.SPAD.data.peakTS:
+                data.append(pd.DataFrame(np.array(self.SPAD.data.peakHeight), columns=['Peak Height']))
+                data.append(pd.DataFrame(np.array(self.SPAD.data.peakTS), columns=['Peak Timestamp']))
+            if self.SPAD.data._eventTS:
+                data.append(pd.DataFrame(self.SPAD.data.eventTS, columns=['Event Timestamp']))
+            if data:
+                zonedTime = datetime.now(timezone(timedelta(hours=+8)))
+                df = pd.concat(data, axis=1)
+                df.to_csv('data\\Summary' + zonedTime.strftime('%Y.%m.%d.%H.%M.%S') + '.csv', index=False)
+            messagebox.showinfo('Export Data', 'Success!')
+            
     def close(self):
         self.root.destroy()
         plt.close()

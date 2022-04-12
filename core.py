@@ -8,11 +8,6 @@ import logging
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
 
-# rng = np.random.default_rng()
-# uni = rng.random((10,), dtype=np.float64)
-# np.putmask(uni, uni < 10**(-4), 0)
-
-
 class Result:
     def __init__(self, success=True, t=None, y=None):
         self.success = success
@@ -34,14 +29,15 @@ class Quench:
         d2ydt = -P.Q.A*y[1] - P.Q.B*y[0] + P.Q.C
         return [y[1], d2ydt]
 
-    def quenchProcess(self, dur=None, highresolution=False):
+    def quenchProcess(self, dur=0, highresolution=False):
+        dur = max(dur, P.Q.Tq * 5)
         if self.init[0] <= self.iq:
             return Result(True, t=np.array([0]), y=np.array(self.init).T)
         if highresolution:
             t_eval = np.arange(0, dur, P.Step)
         else:
             t_eval = None
-        sol = solve_ivp(self.quenchEq, t_span=(0, max(dur, P.Q.Tq * 5)), y0=self.init, t_eval=t_eval)
+        sol = solve_ivp(self.quenchEq, t_span=(0, dur), y0=self.init, t_eval=t_eval)
         if sol.success:
             masked = np.ma.masked_less_equal(sol.y[0], self.iq, copy=False)
             y0 = np.copy(masked.compressed())
@@ -68,7 +64,7 @@ class Recover:
         d2ydt = -P.R.A*y[1] - P.R.B*y[0] + P.R.C
         return [y[1], d2ydt]
 
-    def recoverProcess(self, dur=None, highresolution=False):
+    def recoverProcess(self, dur=0, highresolution=False):
         if not dur:
             dur = P.R.Tr * 5
         if highresolution:

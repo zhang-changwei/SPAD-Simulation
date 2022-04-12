@@ -1,0 +1,3 @@
+- VA <= VB
+- The Last TS is not plotted
+- thresholds PeakDetect, QuenchStart
