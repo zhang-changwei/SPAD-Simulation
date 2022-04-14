@@ -233,7 +233,7 @@ class SPAD:
         pass
 
     def createPlot(self, count:int):
-        TITLE = {'RSIt': 'RS I-t', 'SPADVt': 'SPAD V-t', 'SPADIt': 'SPAD I-t', 'DCIV': 'DC I-V', 'External': ''}
+        TITLE = {'RSIt': '$R_S \\quad I-t$', 'SPADVt': 'SPAD  $V-t$', 'SPADIt': 'SPAD  $I-t$', 'DCIV': 'DC  $I-V$', 'External': ''}
         if count == 1:
             self.axes = [self.parent.curve.figure.add_subplot(111)]
         else:

@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 from matplotlib import pyplot as plt
+from matplotlib import ticker
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 import pandas as pd
@@ -158,15 +159,23 @@ class App:
         self.curve = MatForm(gridR, self)
 
         self.xlimCB = tk.BooleanVar(value=False)
+        self.ylimCB = tk.BooleanVar(value=False)
+        self.legendCB = tk.BooleanVar(value=False)
         self.xlimL = tk.DoubleVar(value=0)
         self.xlimH = tk.DoubleVar(value=0)
-        self.ylimCB = tk.BooleanVar(value=False)
         self.ylimL = tk.DoubleVar(value=0)
         self.ylimH = tk.DoubleVar(value=0)
-        self.legendCB = tk.BooleanVar(value=False)
         self.legend = tk.StringVar(value="['C0'], ['legend']")
         self.color = tk.StringVar(value='C0')
-        self.colorRollCB = tk.BooleanVar(value=False)
+        self.colorRollCB = tk.BooleanVar(value=True)
+        self.xylabelCB = tk.BooleanVar(value=False)
+        self.xytickCB = tk.BooleanVar(value=False)
+        self.titleCB = tk.BooleanVar(value=False)
+        self.xlabel = tk.StringVar(value='$t/s$')
+        self.ylabel = tk.StringVar(value='')
+        self.xtick = tk.DoubleVar(value=1)
+        self.ytick = tk.DoubleVar(value=1)
+        self.title = tk.StringVar(value='')
         COLORS = ['C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']
 
         gridRB = ttk.Frame(self.root)
@@ -182,7 +191,22 @@ class App:
         ttk.Label(gridRB, text='Color').grid(row=0, column=3, padx=2, pady=2)
         ttk.Combobox(gridRB, textvariable=self.color, values=COLORS, state='readonly').grid(row=0, column=4, padx=2, pady=2)
         ttk.Checkbutton(gridRB, text='Roll', variable=self.colorRollCB).grid(row=0, column=5, padx=2, pady=2, sticky='w')
-        ttk.Button(gridRB, text='Set', width=8, command=self.setPlot).grid(row=1, column=5, padx=2, pady=2, sticky='w')
+        ttk.Button(gridRB, text='Set', width=8, command=self.setPlot).grid(row=1, column=5, rowspan=2, padx=2, pady=2, sticky='w')
+
+        gridLB = ttk.Frame(self.root)
+        gridLB.grid(row=4, column=0, padx=5, pady=(0, 5), sticky='news')
+        ttk.Checkbutton(gridLB, text='Labels', variable=self.xylabelCB).grid(row=0, column=0, padx=2, pady=2, sticky='w')
+        ttk.Label(gridLB, text='X').grid(row=0, column=1, padx=2, pady=2)
+        ttk.Label(gridLB, text='Y').grid(row=0, column=3, padx=2, pady=2)
+        ttk.Entry(gridLB, textvariable=self.xlabel).grid(row=0, column=2, padx=2, pady=2)
+        ttk.Entry(gridLB, textvariable=self.ylabel).grid(row=0, column=4, padx=2, pady=2)
+        ttk.Checkbutton(gridLB, text='Tick Multiplier', variable=self.xytickCB).grid(row=1, column=0, padx=2, pady=2, sticky='w')
+        ttk.Label(gridLB, text='X').grid(row=1, column=1, padx=2, pady=2)
+        ttk.Label(gridLB, text='Y').grid(row=1, column=3, padx=2, pady=2)
+        ttk.Entry(gridLB, textvariable=self.xtick).grid(row=1, column=2, padx=2, pady=2)
+        ttk.Entry(gridLB, textvariable=self.ytick).grid(row=1, column=4, padx=2, pady=2)
+        ttk.Checkbutton(gridLB, text='Title', variable=self.titleCB).grid(row=2, column=0, padx=2, pady=2, sticky='w')
+        ttk.Entry(gridLB, textvariable=self.title).grid(row=2, column=2, columnspan=3, padx=2, pady=2, sticky='ew')
 
     def simulate(self):
         self.status.config(text='Processing...', background='yellow')
@@ -264,6 +288,18 @@ class App:
                         l, = ax.plot([], [], marker='', color=lc)
                         lines.append(l)
                     ax.legend(lines, linelegends)
+                if self.xylabelCB.get():
+                    ax.set_xlabel(self.xlabel.get())
+                    ax.set_ylabel(self.ylabel.get())
+                if self.xytickCB.get():
+                    if self.xtick.get() != 1:
+                        xtk = ticker.FuncFormatter(lambda x, pos: '%.1f' % (x * self.xtick.get()))
+                        ax.xaxis.set_major_formatter(xtk)
+                    if self.ytick.get() != 1:
+                        ytk = ticker.FuncFormatter(lambda x, pos: '%.1f' % (x * self.ytick.get()))
+                        ax.yaxis.set_major_formatter(ytk)
+                if self.titleCB.get():
+                    ax.set_title(self.title.get())
             self.curve.canvas.draw()
 
     def rollColor(self):
