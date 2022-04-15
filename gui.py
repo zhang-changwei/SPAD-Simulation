@@ -379,6 +379,7 @@ class App:
             data = []
             if self.SPAD.data.peakTS:
                 data.append(pd.DataFrame(np.array(self.SPAD.data.peakHeight), columns=['Peak Height']))
+                data.append(pd.DataFrame(np.array(self.SPAD.data.peakWidth), columns=['Peak Width']))
                 data.append(pd.DataFrame(np.array(self.SPAD.data.peakTS), columns=['Peak Timestamp']))
             if self.SPAD.data._eventTS:
                 data.append(pd.DataFrame(self.SPAD.data.eventTS, columns=['Event Timestamp']))

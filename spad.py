@@ -22,6 +22,7 @@ class Data:
         self._data = []
         self._time = []
         self.peakHeight = []
+        self.peakWidth = []
         self.peakTS = []
         self._eventTS = []
 
@@ -37,7 +38,7 @@ class Data:
         return len(self.peakTS)
     @property
     def eventCount(self):
-        return len(self.eventTS)
+        return len(self.eventTS) - 1
     @property
     def eventTS(self):
         return np.hstack(self._eventTS)
@@ -72,10 +73,14 @@ class SPAD:
         self.next = Neighbor()
 
         if simumode == 'Q' or simumode == 'QR':
+            self.updatePlotFirst(t=0)
+            self.prev = deepcopy(self.next)
             q = Quench()
-            sol = q.quenchProcess(duration, self.hdBool)
+            sol = q.quenchProcess(duration, self.hdBool, ave=True)
             if sol.success:
                 self.updatePlotQ(sol.t, sol.y)
+                if self.plotBool:
+                    self.updatePlotConnection((self.prev.tt, self.next.th), np.hstack((self.prev.yt, self.next.yh)), show=True)
         if simumode == 'QR' or simumode == 'R':
             self.prev = deepcopy(self.next)
             r = Recover(q=self.prev.init[0], i=self.prev.init[1])
@@ -176,6 +181,7 @@ class SPAD:
             if 'Summary' in self.savemode:
                 self.data.peakTS.append(t[np.argmax(y[0] + P.Rd*P.Cd*y[1])] + start)
                 self.data.peakHeight.append(np.max(y[0] + P.Rd*P.Cd*y[1]))
+                self.data.peakWidth.append(t[-1])
 
     def updatePlotR(self, t:Iterable, y:Iterable, start:float=0):
         self.next.th = t[0] + start

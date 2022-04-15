@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import numpy as np
 
 class QuenchParam:
@@ -36,7 +37,11 @@ class Param:
             'Rl': 100e3,
             'Rs': 8.2e3,
             'Va': 45,
-            'Vb': 43.7
+            'Vb': 43.7,
+            'P10Y0': 11.130*np.log(10), # ln(10)
+            'P10A1': -1.49624*np.log(10),
+            'P10X0': -2.288,
+            'P10T1': 32.991
         }
     ]
 
@@ -62,21 +67,30 @@ class Param:
         self.Rs = next(p)
         self.Va = next(p)
         self.Vb = next(p)
+        self.P10Y0 = next(p)
+        self.P10A1 = next(p)
+        self.P10X0 = next(p)
+        self.P10T1 = next(p)
         self.setInducedParam()
 
-    @property
-    def StepInv(self):
-        return 1/self.Step
+    def LogP10(self, i:np.ndarray):
+        '''input unit: A'''
+        ii = i * 1e6
+        return self.P10Y0 + self.P10A1 * np.exp((ii - self.P10X0) / self.P10T1)
 
-    @property
-    def SwitchOnProb(self):
-        return (self.LCR + self.DCR)/self.StepInv
+    def P10(self, i:np.ndarray):
+        '''input unit: A'''
+        return np.exp(self.LogP10(i))
 
-    @property
-    def Imax(self):
-        return (self.Va - self.Vb) / self.Rd
+    def Tau1(self, i:np.ndarray):
+        '''input unit: A'''
+        return 1/self.P10(i)
 
     def setInducedParam(s):
+        s.StepInv = 1/s.Step
+        s.SwitchOnProb = (s.LCR + s.DCR)/s.StepInv
+        s.Imax = (s.Va - s.Vb) / s.Rd
+        s.If = (s.Va - s.Vb) / (s.Rl + s.Rd + s.Rs)
         s.Q = QuenchParam()
         s.Q.A = (s.Cd/s.Ccs*s.Rd + s.Rs + s.Rd)/(s.Rs*s.Rd*s.Cd)
         s.Q.B = 1/(s.Rs*s.Rd*s.Ccs*s.Cd)
@@ -91,3 +105,9 @@ class Param:
 
 P = Param()
 rng = np.random.default_rng()
+# x = np.arange(0, 70e-6, 1e-6)
+# y = P.P10(x)
+# print(x)
+# plt.plot(x*1e6, y)
+# plt.yscale('log')
+# plt.show()
