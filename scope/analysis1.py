@@ -7,7 +7,7 @@ import pickle
 
 dot = 0
 peakList, propertyList = [],[]
-for pk, pt in zip(glob.glob('feature/*.peak.pickle'), glob.glob('feature/*.property.pickle')):
+for pk, pt in zip(glob.glob('../feature/*.peak.pickle'), glob.glob('../feature/*.property.pickle')):
     with open(pk, 'rb') as pf:
         tmp = pickle.load(pf)
         peakList += tmp
@@ -24,7 +24,7 @@ for pk, pt in zip(peakList, propertyList):
         dot = dot + len(interval)
     
 print(dot)
-plt.xscale('log')
-plt.xlabel('interval')
-plt.ylabel('peak height')
+# plt.xscale('log')
+plt.xlabel('interval / a.u.')
+plt.ylabel('peak height / a.u.')
 plt.show()

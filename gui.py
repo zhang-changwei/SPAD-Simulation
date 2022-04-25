@@ -130,6 +130,7 @@ class App:
         ttk.Radiobutton(gridB, text='1 Pulse (R)', value='R', variable=self.simRB).grid(row=1, column=2, padx=2, pady=2, sticky='w')
         ttk.Radiobutton(gridB, text='1 Pulse (QR)', value='QR', variable=self.simRB).grid(row=2, column=2, padx=2, pady=2, sticky='w')
         ttk.Radiobutton(gridB, text='Long Time', value='T', variable=self.simRB).grid(row=3, column=2, padx=2, pady=2, sticky='w')
+        ttk.Radiobutton(gridB, text='DC IV Curve', value='IV', variable=self.simRB).grid(row=4, column=2, padx=2, pady=2, sticky='w')
 
         ttk.Radiobutton(gridB, text='Default Step', value=False, variable=self.stepRB).grid(row=0, column=3, padx=2, pady=2, sticky='w')
         ttk.Radiobutton(gridB, text='Custom Step', value=True, variable=self.stepRB).grid(row=1, column=3, padx=2, pady=2, sticky='w')
@@ -366,7 +367,7 @@ class App:
             if self.colorRollCB.get():
                 self.rollColor()
 
-    def save(self):
+    def save(self, show=True):
         if hasattr(self, 'SPAD') and self.SPAD.data.on:
             # Raw
             if self.SPAD.data._data:
@@ -383,11 +384,15 @@ class App:
                 data.append(pd.DataFrame(np.array(self.SPAD.data.peakTS), columns=['Peak Timestamp']))
             if self.SPAD.data._eventTS:
                 data.append(pd.DataFrame(self.SPAD.data.eventTS, columns=['Event Timestamp']))
+            if self.SPAD.data.dcVoltage:
+                data.append(pd.DataFrame(self.SPAD.data.dcVoltage, columns=['DC Voltage']))
+                data.append(pd.DataFrame(self.SPAD.data.dcCurrent, columns=['DC Current']))
             if data:
                 zonedTime = datetime.now(timezone(timedelta(hours=+8)))
                 df = pd.concat(data, axis=1)
                 df.to_csv('data\\Summary' + zonedTime.strftime('%Y.%m.%d.%H.%M.%S') + '.csv', index=False)
-            messagebox.showinfo('Export Data', 'Success!')
+            if show:
+                messagebox.showinfo('Export Data', 'Success!')
             
     def close(self):
         self.root.destroy()

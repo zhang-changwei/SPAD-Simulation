@@ -25,6 +25,8 @@ class Data:
         self.peakWidth = []
         self.peakTS = []
         self._eventTS = []
+        self.dcCurrent = []
+        self.dcVoltage = []
 
     @property
     def data(self):
@@ -71,6 +73,9 @@ class SPAD:
     def start(self, duration=0, simumode='Q'):
         self.prev = Neighbor()
         self.next = Neighbor()
+
+        if simumode == 'IV':
+            self.updatePlotNaiveIV()
 
         if simumode == 'Q' or simumode == 'QR':
             self.updatePlotFirst(t=0)
@@ -209,6 +214,24 @@ class SPAD:
             if 'Raw' in self.savemode:
                 self.data._time.append(t + start)
                 self.data._data.append(y[1])
+
+    def updatePlotNaiveIV(self):
+        vMax = 200e-6 * P.Rd + P.Vb
+        vList = np.arange(P.Vb, vMax, 0.001)
+        iList = [0]
+        for v in vList[1:]:
+            iFin = (v - P.Vb)/(P.Rd)
+            p10 = P.P10(iFin)
+            if p10 > (P.LCR + P.DCR):
+                iList.append((P.LCR + P.DCR)/p10 * iFin)
+            else:
+                iList.append(iFin)
+        if self.plotBool:
+            self.axes[0].plot(vList, iList, marker='', color=self.color)
+            self.updatePlotConnection([0, P.Vb], [[0, 0]], show=True)
+        if self.saveBool:
+            self.data.dcCurrent = iList
+            self.data.dcVoltage = vList
 
     def updatePlotConnection(self, t:Iterable, y:Iterable, show:Optional[bool]=False):
         for i, ax in enumerate(self.axes):
