@@ -34,7 +34,7 @@ class Quench:
         if ave == False and rand <= P.P10(self.init[0])*P.Step:
             return Result(True, t=np.array([0]), y=np.array(self.init).reshape(-1, 1))
 
-        print(P.Tau1(P.If), P.Q.Tq)
+        # print(P.Tau1(P.If), P.Q.Tq)
         duration = (P.Tau1(P.If) + P.Q.Tq) * 5
         if highresolution:
             t_eval = np.arange(0, duration, P.Step)
@@ -55,15 +55,15 @@ class Quench:
                     sol.t = np.append(sol.t, tauAve)
                     sol.y = np.hstack((sol.y, [[sol.y[0, -1]], [sol.y[1, -1]]]))
             else:
-                probLeft = 1
+                # probLeft = 1
                 for ts, d, i in zip(sol.t[1:], sol.t[1:] - sol.t[:-1], sol.y[0, 1:]):
                     rand = rng.random()
                     prob = P.P10(i) * d
-                    if rand <= probLeft * prob:
+                    if rand <= prob: # probLeft * prob:
                         sol.t = sol.t[sol.t <= ts]
                         sol.y = sol.y[:, :(sol.t.size)]
                         break
-                    probLeft = probLeft * (1 - prob)
+                    # probLeft = probLeft * (1 - prob)
                 else:
                     rand = rng.exponential(P.Tau1(sol.y[0, -1])) + sol.t[-1]
                     sol.t = np.append(sol.t, rand)

@@ -6,7 +6,7 @@ import pickle
 
 # 参数: 卷积: 4, 阶段高度: (0.75, 0.25), hist bin: 15
 
-file = 'data/wave_record_0'
+file = '../data/wave_record_0'
 
 # yAll = BinRead(file+'.bin')
 with open(file+'.bin.pickle', 'rb') as pf:
@@ -46,7 +46,7 @@ for i in range(len(yAll)):
     if peakcount>=3: # remove the first and the last peak
         y_copy = np.copy(y)
         pl, pr = np.floor(properties['left_ips']), np.ceil(properties['right_ips'])
-        for pi in range(1, peakcount-1):
+        for pi in range(peakcount):# range(1, peakcount-1):
             pk = np.argmax(y_copy[int(pl[pi]) : int(pr[pi])])
             peaks.append(pk + int(pl[pi]))
         # regenerate peak properity
@@ -60,12 +60,12 @@ for i in range(len(yAll)):
 
     # filtered plot
     # plt.subplot(int(row*100+column*10+i+1))
-    if i==15:
-        plt.plot(y)
-        plt.plot(peaks, y[peaks], 'x')
-        plt.vlines(x=peaks, ymin=y[peaks]-properties['prominences'], ymax=y[peaks], color='C1')
-        plt.hlines(y=properties['width_heights'], xmin=properties['left_ips'], xmax=properties['right_ips'], color='C1')
-        plt.hlines(y=y_filzho, xmin=x[0], xmax=x[-1], color='black')
+    if i==0:
+        plt.plot(y, lw=0.8, label='Signal')
+        plt.plot(peaks, y[peaks], 'x', label='Peak')
+        plt.vlines(x=peaks, ymin=y[peaks]-properties['prominences'], ymax=y[peaks], color='C1', lw=0.7, zorder=5)
+        plt.hlines(y=properties['width_heights'], xmin=properties['left_ips'], xmax=properties['right_ips'], color='C1', zorder=5)
+        plt.hlines(y=y_filzho, xmin=x[0], xmax=x[-1], color='black', linestyles='dashed', lw=0.5, label='Threshold')
 
     # unfiltered find_peaks
     # peaks, properties = find_peaks(y, height=yzho, width=3, prominence=yzho-ymed)
@@ -88,17 +88,20 @@ for i in range(len(yAll)):
 
     # filter contrast
     # plt.subplot(int(row*100+column*10+i+1))
-    # plt.plot(y, '-')
-    # plt.plot(y_fil, '-')
+    # plt.plot(y, '-', label='Not Filtered')
+    # plt.plot(y_fil, '-', label='Filtered')
 
     # update
-
+    break
 
 # save
-with open(file+'.peak.pickle', 'wb') as pf:
-    pickle.dump(peakList, pf)
-with open(file+'.property.pickle', 'wb') as pf:
-    pickle.dump(propertyList, pf)
+# with open(file+'.peak.pickle', 'wb') as pf:
+#     pickle.dump(peakList, pf)
+# with open(file+'.property.pickle', 'wb') as pf:
+#     pickle.dump(propertyList, pf)
 
 # show
+plt.xlabel('time / a.u.')
+plt.ylabel('signal / a.u.')
+plt.legend()
 plt.show()

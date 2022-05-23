@@ -51,7 +51,7 @@
             "Level": "108mV",
             "Edge": "RISE",
             "Coupling": "DC",
-            "HoldOff": "100ns"
+            "HoldOff": "100ns" ##
         },
         "Sweep": "AUTO"
     }

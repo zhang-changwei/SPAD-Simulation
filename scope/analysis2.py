@@ -34,15 +34,17 @@ def func(x, a, b):
 # x = (bins[:-1] + bins[1:])/2
 # save(np.vstack((x, phist)))
 # opt, cov = curve_fit(func, x[9:], phist[9:])
-x = np.linspace(80, 360, 50)
+x = np.linspace(100, 360, 50)
 y = func(x, 589.7, 54.6)
 
 # plt.hist(intervals, bins=np.logspace(np.log10(10), np.log10(pmax), num=30, base=10))
-plt.hist(intervals, bins=np.linspace(pmin, pmax, num=40), histtype='step')
-plt.plot(x, y)
+plt.hist(intervals*0.2, bins=np.linspace(pmin*0.2, pmax*0.2, num=40), histtype='step')
+plt.plot(x*0.2, y)
 
+plt.hlines(95, 5, 20, ls='dashed', color='C1')
+plt.vlines(5, 0, 95, ls='dashed', color='C1')
 plt.yscale('log')
 # plt.xscale('log')
-plt.xlabel('interval / a.u.')
+plt.xlabel(r'interval / $\mathrm{\mu s}$')
 plt.ylabel('count')
 plt.show()
